@@ -44,6 +44,8 @@ The project is structured to handle different aspects, each encapsulated within 
 
 ## Bonus Implementations
    - Implemented Role based acess control (e.g., admin, regular user) to manage access to certain API endpoints.
+   - Added specific fields to database schema so that we can perform sorting or paging for large files.
+   - from these fields we can also implement search for files or folder.
 
 ### Sequence Diagram
 
