@@ -1,0 +1,333 @@
+openapi: 3.0.0
+info:
+  title: Integrated API
+  version: 1.0.0
+  description: API for managing files and folders, user registration, authentication, and management
+basePath: /api
+paths:
+  /register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                role:
+                  type: string
+      responses:
+        '201':
+          description: User created successfully
+        '400':
+          description: Bad request or user already exists
+
+  /login:
+    post:
+      summary: Log in a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: User logged in successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  token:
+                    type: string
+        '400':
+          description: Bad request or invalid credentials
+
+  /users:
+    get:
+      summary: Get all users
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        username:
+                          type: string
+        '401':
+          description: Unauthorized - Missing or invalid token
+        '403':
+          description: Forbidden - Insufficient role
+
+  /users/{username}:
+    delete:
+      summary: Delete a user
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User deleted successfully
+        '400':
+          description: Bad request or user not found
+        '401':
+          description: Unauthorized - Missing or invalid token
+        '403':
+          description: Forbidden - Insufficient role
+
+    put:
+      summary: Update a user's password
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+      responses:
+        '200':
+          description: User password updated successfully
+        '400':
+          description: Bad request or user not found
+        '401':
+          description: Unauthorized - Missing or invalid token
+        '403':
+          description: Forbidden - Insufficient role
+ 
+  /uploadFolder:
+    post:
+      summary: Upload a folder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                foldername:
+                  type: string
+      responses:
+        '201':
+          description: Folder created successfully
+        '400':
+          description: Bad request or folder already exists
+        '500':
+          description: Internal server error
+
+  /subFolderUpload:
+    post:
+      summary: Upload a subfolder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                parent_folder_name:
+                  type: string
+                sub_folder_name:
+                  type: string
+      responses:
+        '201':
+          description: Subfolder created successfully
+        '400':
+          description: Bad request or subfolder already exists
+        '500':
+          description: Internal server error
+
+  /fileUpload:
+    post:
+      summary: Upload a file
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                parent_folder_name:
+                  type: string
+                sub_folder_name:
+                  type: string
+                file_name:
+                  type: string
+                uploadhere:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: File uploaded successfully
+        '400':
+          description: Bad request or file already exists
+        '500':
+          description: Internal server error
+
+  /deleteFile:
+    delete:
+      summary: Delete a file
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                filename:
+                  type: string
+                parent_folder_name:
+                  type: string
+      responses:
+        '200':
+          description: File deleted successfully
+        '400':
+          description: Bad request or file not found
+        '500':
+          description: Internal server error
+
+  /renameFile:
+    put:
+      summary: Rename a file
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                old_filename:
+                  type: string
+                parent_folder_path:
+                  type: string
+                new_filename:
+                  type: string
+      responses:
+        '200':
+          description: File renamed successfully
+        '400':
+          description: Bad request or file not found
+        '500':
+          description: Internal server error
+
+  /moveFile:
+    put:
+      summary: Move a file
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                filename:
+                  type: string
+                old_folder_path:
+                  type: string
+                new_folder_path:
+                  type: string
+      responses:
+        '200':
+          description: File moved successfully
+        '400':
+          description: Bad request or file not found
+        '500':
+          description: Internal server error
+
+  
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        password_hash:
+          type: string
+        role:
+          type: string
+
+    Folder:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        created_by:
+          type: string
+        parent_folder:
+          type: integer
+        s3_object_key:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    File:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        size:
+          type: integer
+        uploaded_by:
+          type: string
+        parent_folder:
+          type: integer
+        s3_object_key:
+          type: string
+        created_at:
+          type: string
+          format: date-time
